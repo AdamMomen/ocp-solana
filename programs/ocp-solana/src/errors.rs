@@ -7,6 +7,12 @@ pub enum IssuerError {
 }
 
 #[error_code]
+pub enum StockClassError {
+    #[msg("Shares authorized cannot be zero")]
+    SharesAuthorizedCannotBeZero,
+}
+
+#[error_code]
 pub enum StockError {
     #[msg("Insufficient shares available for issuance")]
     InsufficientShares,

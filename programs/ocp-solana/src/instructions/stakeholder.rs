@@ -5,6 +5,7 @@ use anchor_lang::prelude::*;
 #[derive(Accounts)]
 #[instruction(id: [u8; 16])]
 pub struct CreateStakeholder<'info> {
+    pub issuer: Account<'info, Issuer>,
     #[account(
         init,
         payer = authority,

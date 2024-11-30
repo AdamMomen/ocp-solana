@@ -6,6 +6,7 @@ use anchor_lang::prelude::*;
 #[derive(Accounts)]
 #[instruction(id: [u8; 16], stock_class_ids: Vec<[u8; 16]>)]
 pub struct CreateStockPlan<'info> {
+    pub issuer: Account<'info, Issuer>,
     #[account(
         init,
         payer = authority,
@@ -28,6 +29,7 @@ pub struct CreateStockPlan<'info> {
 
 #[derive(Accounts)]
 pub struct AdjustStockPlanShares<'info> {
+    pub issuer: Account<'info, Issuer>,
     #[account(mut)]
     pub stock_plan: Account<'info, StockPlan>,
     pub authority: Signer<'info>,

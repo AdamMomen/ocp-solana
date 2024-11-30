@@ -1,10 +1,11 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::events::*;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 #[instruction(id: [u8; 16])]
 pub struct CreateStockClass<'info> {
+    pub issuer: Account<'info, Issuer>,
     #[account(
         init,
         payer = authority,
@@ -23,6 +24,7 @@ pub struct CreateStockClass<'info> {
 
 #[derive(Accounts)]
 pub struct AdjustStockClassShares<'info> {
+    pub issuer: Account<'info, Issuer>,
     #[account(mut)]
     pub stock_class: Account<'info, StockClass>,
     pub authority: Signer<'info>,
@@ -36,7 +38,7 @@ pub fn create_stock_class(
     initial_shares_authorized: u64,
 ) -> Result<()> {
     let stock_class = &mut ctx.accounts.stock_class;
-    
+
     stock_class.id = id;
     stock_class.class_type = class_type;
     stock_class.price_per_share = price_per_share;
@@ -49,7 +51,7 @@ pub fn create_stock_class(
         price_per_share,
         initial_shares_authorized,
     });
-    
+
     Ok(())
 }
 
@@ -64,6 +66,6 @@ pub fn adjust_stock_class_shares(
         stock_class_id: stock_class.id,
         new_shares_authorized,
     });
-    
+
     Ok(())
-} 
+}

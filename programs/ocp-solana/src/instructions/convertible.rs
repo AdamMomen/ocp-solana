@@ -6,6 +6,7 @@ use anchor_lang::prelude::*;
 #[derive(Accounts)]
 #[instruction(security_id: [u8; 16], investment_amount: u64)]
 pub struct IssueConvertible<'info> {
+    pub issuer: Account<'info, Issuer>,
     pub stakeholder: Account<'info, Stakeholder>,
     #[account(
         init,
