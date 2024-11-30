@@ -1,5 +1,5 @@
 use crate::events::*;
-use crate::state::stakeholder::*;
+use crate::state::*;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]

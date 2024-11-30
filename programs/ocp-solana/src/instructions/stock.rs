@@ -1,6 +1,5 @@
 use crate::errors::*;
 use crate::events::*;
-use crate::state::stakeholder::*;
 use crate::state::*;
 use anchor_lang::prelude::*;
 
@@ -23,7 +22,7 @@ pub struct IssueStock<'info> {
         ],
         bump
     )]
-    pub position: Account<'info, StockPosition>,
+    pub position: Account<'info, StockActivePosition>,
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
