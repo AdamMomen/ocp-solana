@@ -15,19 +15,21 @@ describe("Issuer Program Tests", () => {
   const testId = new Uint8Array(16).fill(1); // Create a test bytes16 ID
   const initialShares = new anchor.BN(1000000);
   const newSharesAuthorized = new anchor.BN(2000000);
+  let issuerPda: anchor.web3.PublicKey; // PDA for issuer
+
+  before(async () => {
+    // Find PDA for issuer
+    [issuerPda] = await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from("issuer"), Buffer.from(testId)],
+      program.programId
+    );
+  });
 
   it("Initializes an issuer", async () => {
     try {
-      // Find PDA for issuer
-      const [issuerPda] = await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from("issuer"), Buffer.from(testId)],
-        program.programId
-      );
-
       await program.methods
         .initializeIssuer(Array.from(testId), initialShares)
         .accounts({
-          issuer: issuerPda,
           authority: authority.publicKey,
         })
         .rpc();
@@ -85,7 +87,7 @@ describe("Issuer Program Tests", () => {
       await program.methods
         .initializeIssuer(Array.from(testId), initialShares)
         .accounts({
-          issuer: issuerPda,
+          // issuer: issuerPda,
           authority: authority.publicKey,
         })
         .rpc();
