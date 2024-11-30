@@ -51,6 +51,7 @@ describe("Equity Compensation Tests", () => {
     await program.methods
       .initializeIssuer(Array.from(issuerId), new anchor.BN(100000))
       .accounts({
+        // @ts-ignore
         issuer: issuerPda,
         authority: authority.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
@@ -61,6 +62,8 @@ describe("Equity Compensation Tests", () => {
     await program.methods
       .createStakeholder(Array.from(stakeholderId))
       .accounts({
+        issuer: issuerPda,
+        // @ts-ignore
         stakeholder: stakeholderPda,
         authority: authority.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
@@ -76,6 +79,8 @@ describe("Equity Compensation Tests", () => {
         initialShares
       )
       .accounts({
+        issuer: issuerPda,
+        // @ts-ignore
         stockClass: stockClassPda,
         authority: authority.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
@@ -90,6 +95,8 @@ describe("Equity Compensation Tests", () => {
         initialShares
       )
       .accounts({
+        issuer: issuerPda,
+        // @ts-ignore
         stockPlan: stockPlanPda,
         stockClass: stockClassPda,
         authority: authority.publicKey,
@@ -120,6 +127,7 @@ describe("Equity Compensation Tests", () => {
         stakeholder: stakeholderPda,
         stockClass: stockClassPda,
         stockPlan: stockPlanPda,
+        // @ts-ignore
         position: positionPda,
         authority: authority.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
@@ -162,6 +170,7 @@ describe("Equity Compensation Tests", () => {
         issuer: issuerPda,
         stockClass: stockClassPda,
         stakeholder: stakeholderPda,
+        // @ts-ignore
         position: stockPositionPda,
         authority: authority.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
@@ -237,6 +246,7 @@ describe("Equity Compensation Tests", () => {
         stakeholder: stakeholderPda,
         stockClass: stockClassPda,
         stockPlan: stockPlanPda,
+        // @ts-ignore
         position: equityPositionPda,
         authority: authority.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
@@ -264,6 +274,7 @@ describe("Equity Compensation Tests", () => {
         issuer: issuerPda,
         stockClass: stockClassPda,
         stakeholder: stakeholderPda,
+        // @ts-ignore
         position: stockPositionPda,
         authority: authority.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,

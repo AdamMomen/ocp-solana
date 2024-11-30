@@ -11,20 +11,41 @@ describe("Stakeholder Tests", () => {
   const authority = provider.wallet;
 
   // Test data
-  const testId = new Uint8Array(16).fill(1); // Create a test bytes16 ID
+
+  // Add issuer setup
+  const issuerId = new Uint8Array(16).fill(1);
+  const stakeholderId = new Uint8Array(16).fill(2); // Create a test bytes16 ID
+  let issuerPda: anchor.web3.PublicKey;
+
+  before(async () => {
+    [issuerPda] = await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from("issuer"), Buffer.from(issuerId)],
+      program.programId
+    );
+
+    // await program.methods
+    //   .initializeIssuer(Array.from(issuerId), new anchor.BN(100000))
+    //   .accounts({
+    //     // @ts-ignore
+    //     issuer: issuerPda,
+    //     authority: authority.publicKey,
+    //     systemProgram: anchor.web3.SystemProgram.programId,
+    //   })
+    //   .rpc();
+  });
 
   it("Creates a stakeholder", async () => {
     try {
       // Find PDA for stakeholder
       const [stakeholderPda] = await anchor.web3.PublicKey.findProgramAddress(
-        [Buffer.from("stakeholder"), Buffer.from(testId)],
+        [Buffer.from("stakeholder"), Buffer.from(stakeholderId)],
         program.programId
       );
 
       await program.methods
-        .createStakeholder(Array.from(testId))
+        .createStakeholder(Array.from(stakeholderId))
         .accounts({
-          stakeholder: stakeholderPda,
+          issuer: issuerPda,
           authority: authority.publicKey,
         })
         .rpc();
@@ -35,8 +56,9 @@ describe("Stakeholder Tests", () => {
       );
 
       // Verify the account data
-      expect(Buffer.from(stakeholderAccount.id).equals(Buffer.from(testId))).to
-        .be.true;
+      expect(
+        Buffer.from(stakeholderAccount.id).equals(Buffer.from(stakeholderId))
+      ).to.be.true;
     } catch (error) {
       console.error("Error:", error);
       throw error;
@@ -44,18 +66,20 @@ describe("Stakeholder Tests", () => {
   });
 
   it("Creates multiple stakeholders with different IDs", async () => {
-    const testId2 = new Uint8Array(16).fill(2); // Different ID for second stakeholder
+    const stakeholderId2 = new Uint8Array(16).fill(3); // Different ID for second stakeholder
 
     // Find PDA for second stakeholder
     const [stakeholder2Pda] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("stakeholder"), Buffer.from(testId2)],
+      [Buffer.from("stakeholder"), Buffer.from(stakeholderId2)],
       program.programId
     );
 
     try {
       await program.methods
-        .createStakeholder(Array.from(testId2))
+        .createStakeholder(Array.from(stakeholderId2))
         .accounts({
+          issuer: issuerPda,
+          // @ts-ignore
           stakeholder: stakeholder2Pda,
           authority: authority.publicKey,
         })
@@ -67,8 +91,9 @@ describe("Stakeholder Tests", () => {
       );
 
       // Verify the account data
-      expect(Buffer.from(stakeholderAccount.id).equals(Buffer.from(testId2))).to
-        .be.true;
+      expect(
+        Buffer.from(stakeholderAccount.id).equals(Buffer.from(stakeholderId2))
+      ).to.be.true;
     } catch (error) {
       console.error("Error:", error);
       throw error;

@@ -55,13 +55,21 @@ describe("Stock Tests", () => {
         sharePrice,
         initialShares
       )
-      .accounts({ authority: authority.publicKey })
+      .accounts({
+        authority: authority.publicKey,
+        // @ts-ignore
+        issuer: issuerPda,
+      })
       .rpc();
 
     // Create stakeholder
     await program.methods
       .createStakeholder(Array.from(stakeholderId))
-      .accounts({ authority: authority.publicKey })
+      .accounts({
+        authority: authority.publicKey,
+        // @ts-ignore
+        issuer: issuerPda,
+      })
       .rpc();
   });
 
@@ -102,7 +110,8 @@ describe("Stock Tests", () => {
         stockClass: stockClassPda,
         issuer: issuerPda,
         stakeholder: stakeholderPda,
-        // position: positionPda,
+        // @ts-ignore
+        position: positionPda,
         authority: authority.publicKey,
       })
       .rpc();

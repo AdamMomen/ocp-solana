@@ -20,7 +20,26 @@ describe("Stock Plan Tests", () => {
   let stockClassPda1: anchor.web3.PublicKey;
   let stockClassPda2: anchor.web3.PublicKey;
 
+  // Add issuer setup
+  const issuerId = new Uint8Array(16).fill(1);
+  let issuerPda: anchor.web3.PublicKey;
+
   before(async () => {
+    [issuerPda] = await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from("issuer"), Buffer.from(issuerId)],
+      program.programId
+    );
+    // Skipping creating issuer: use existing one that got created in issuer.test.ts
+    // await program.methods
+    //   .initializeIssuer(Array.from(issuerId), new anchor.BN(100000))
+    //   .accounts({
+    //     // @ts-ignore
+    //     issuer: issuerPda,
+    //     authority: authority.publicKey,
+    //     systemProgram: anchor.web3.SystemProgram.programId,
+    //   })
+    //   .rpc();
+
     // Create stock classes first
     [stockClassPda1] = await anchor.web3.PublicKey.findProgramAddress(
       [Buffer.from("stock_class"), Buffer.from(stockClassId1)],
@@ -41,6 +60,7 @@ describe("Stock Plan Tests", () => {
         sharesReserved
       )
       .accounts({
+        issuer: issuerPda,
         // @ts-ignore
         stockClass: stockClassPda1,
         authority: authority.publicKey,
@@ -57,6 +77,7 @@ describe("Stock Plan Tests", () => {
         sharesReserved
       )
       .accounts({
+        issuer: issuerPda,
         // @ts-ignore
         stockClass: stockClassPda2,
         authority: authority.publicKey,
@@ -78,6 +99,7 @@ describe("Stock Plan Tests", () => {
         sharesReserved
       )
       .accounts({
+        issuer: issuerPda,
         // @ts-ignore
         stockPlan: stockPlanPda,
         stockClass: stockClassPda1,
@@ -109,6 +131,7 @@ describe("Stock Plan Tests", () => {
     await program.methods
       .adjustStockPlanShares(newSharesReserved)
       .accounts({
+        issuer: issuerPda,
         stockPlan: stockPlanPda,
         authority: authority.publicKey,
       })
@@ -142,6 +165,7 @@ describe("Stock Plan Tests", () => {
           sharesReserved
         )
         .accounts({
+          issuer: issuerPda,
           stockClass: invalidStockClassPda,
           // @ts-ignore
           stockPlan: stockPlanPda,
