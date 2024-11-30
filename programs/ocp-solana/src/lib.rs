@@ -103,6 +103,10 @@ pub mod ocp_solana {
         quantity: u64,
         share_price: u64,
     ) -> Result<()> {
+        // Validate quantity and share price
+        require!(quantity > 0, StockError::InvalidQuantity);
+        require!(share_price > 0, StockError::InvalidSharePrice);
+
         let stock_class = &mut ctx.accounts.stock_class;
         let issuer = &mut ctx.accounts.issuer;
         let position = &mut ctx.accounts.position;
@@ -211,12 +215,15 @@ pub struct CreateStakeholder<'info> {
 #[derive(Accounts)]
 #[instruction(stock_class_id: [u8; 16], security_id: [u8; 16], quantity: u64, share_price: u64)]
 pub struct IssueStock<'info> {
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = stock_class.id == stock_class_id @ StockError::InvalidStockClass
+    )]
     pub stock_class: Account<'info, StockClass>,
     #[account(mut)]
     pub issuer: Account<'info, Issuer>,
     #[account(
-        constraint = stock_class.id == stock_class_id @ StockError::InvalidStockClass
+        constraint = stakeholder.id != [0; 16] @ StockError::InvalidStakeholder
     )]
     pub stakeholder: Account<'info, Stakeholder>,
     #[account(
@@ -313,4 +320,8 @@ pub enum StockError {
     InvalidStakeholder,
     #[msg("Invalid stock class")]
     InvalidStockClass,
+    #[msg("Quantity must be greater than zero")]
+    InvalidQuantity,
+    #[msg("Share price must be greater than zero")]
+    InvalidSharePrice,
 }
