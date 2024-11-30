@@ -108,7 +108,9 @@ describe("Stock Tests", () => {
       .rpc();
 
     // Verify position
-    const position = await program.account.stockPosition.fetch(positionPda);
+    const position = await program.account.stockActivePosition.fetch(
+      positionPda
+    );
     expect(
       Buffer.from(position.stakeholderId).equals(Buffer.from(stakeholderId))
     ).to.be.true;
