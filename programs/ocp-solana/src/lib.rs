@@ -215,16 +215,10 @@ pub struct CreateStakeholder<'info> {
 #[derive(Accounts)]
 #[instruction(stock_class_id: [u8; 16], security_id: [u8; 16], quantity: u64, share_price: u64)]
 pub struct IssueStock<'info> {
-    #[account(
-        mut,
-        constraint = stock_class.id == stock_class_id @ StockError::InvalidStockClass
-    )]
+    #[account(mut)]
     pub stock_class: Account<'info, StockClass>,
     #[account(mut)]
     pub issuer: Account<'info, Issuer>,
-    #[account(
-        constraint = stakeholder.id != [0; 16] @ StockError::InvalidStakeholder
-    )]
     pub stakeholder: Account<'info, Stakeholder>,
     #[account(
         init,
