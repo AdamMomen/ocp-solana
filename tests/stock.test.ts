@@ -228,8 +228,10 @@ describe("Stock Tests", () => {
           stockClass: stockClassPda,
           issuer: issuerPda,
           stakeholder: stakeholderPda,
-          position: positionPda,
           authority: authority.publicKey,
+          // @ts-ignore
+          position: positionPda,
+          // @ts-ignore
           systemProgram: anchor.web3.SystemProgram.programId,
         })
         .rpc();
@@ -264,8 +266,10 @@ describe("Stock Tests", () => {
           stockClass: stockClassPda,
           issuer: issuerPda,
           stakeholder: stakeholderPda,
-          position: positionPda,
           authority: authority.publicKey,
+          // @ts-ignore
+          position: positionPda,
+          // @ts-ignore
           systemProgram: anchor.web3.SystemProgram.programId,
         })
         .rpc();

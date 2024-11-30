@@ -32,11 +32,7 @@ describe("Stock Class Tests", () => {
           pricePerShare,
           initialShares
         )
-        .accounts({
-          stockClass: stockClassPda,
-          authority: authority.publicKey,
-          systemProgram: anchor.web3.SystemProgram.programId,
-        })
+        .accounts({ authority: authority.publicKey })
         .rpc();
 
       // Fetch the created account
@@ -75,11 +71,7 @@ describe("Stock Class Tests", () => {
           pricePerShare,
           initialShares
         )
-        .accounts({
-          stockClass: preferredStockPda,
-          authority: authority.publicKey,
-          systemProgram: anchor.web3.SystemProgram.programId,
-        })
+        .accounts({ authority: authority.publicKey })
         .rpc();
 
       // Fetch the created account
