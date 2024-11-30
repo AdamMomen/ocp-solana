@@ -59,3 +59,11 @@ pub struct EquityCompensationActivePosition {
     pub security_id: [u8; 16],
     pub quantity: u64,
 }
+
+#[account]
+#[derive(Default)]
+pub struct WarrantActivePosition {
+    pub stakeholder_id: [u8; 16],
+    pub security_id: [u8; 16],
+    pub quantity: u64,
+}

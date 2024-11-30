@@ -118,4 +118,12 @@ pub mod ocp_solana {
             quantity,
         )
     }
+
+    pub fn issue_warrant(
+        ctx: Context<IssueWarrant>,
+        security_id: [u8; 16],
+        quantity: u64,
+    ) -> Result<()> {
+        instructions::warrant::issue_warrant(ctx, security_id, quantity)
+    }
 }

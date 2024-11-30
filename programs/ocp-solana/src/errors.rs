@@ -49,3 +49,9 @@ pub enum EquityCompensationError {
     #[msg("Stock position must belong to same stakeholder")]
     InvalidStakeholder,
 }
+
+#[error_code]
+pub enum WarrantError {
+    #[msg("Quantity must be greater than zero")]
+    InvalidQuantity,
+}

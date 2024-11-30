@@ -62,3 +62,10 @@ pub struct EquityCompensationExercised {
     pub resulting_stock_security_id: [u8; 16],
     pub quantity: u64,
 }
+
+#[event]
+pub struct WarrantIssued {
+    pub stakeholder_id: [u8; 16],
+    pub security_id: [u8; 16],
+    pub quantity: u64,
+}
