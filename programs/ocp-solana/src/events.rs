@@ -39,3 +39,10 @@ pub struct StockPlanSharesAdjusted {
     pub id: [u8; 16],
     pub new_shares_reserved: u64,
 }
+
+#[event]
+pub struct ConvertibleIssued {
+    pub stakeholder_id: [u8; 16],
+    pub security_id: [u8; 16],
+    pub investment_amount: u64,
+}

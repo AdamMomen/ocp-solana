@@ -25,3 +25,9 @@ pub enum StockPlanError {
     #[msg("Stock class ID mismatch")]
     StockClassIdMismatch,
 }
+
+#[error_code]
+pub enum ConvertibleError {
+    #[msg("Investment amount must be greater than zero")]
+    InvalidAmount,
+}

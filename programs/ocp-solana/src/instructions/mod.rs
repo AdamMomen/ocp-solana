@@ -1,9 +1,11 @@
+pub mod convertible;
 pub mod issuer;
 pub mod stakeholder;
 pub mod stock;
 pub mod stock_class;
 pub mod stock_plan;
 
+pub use convertible::*;
 pub use issuer::*;
 pub use stakeholder::*;
 pub use stock::*;

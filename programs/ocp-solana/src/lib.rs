@@ -80,4 +80,12 @@ pub mod ocp_solana {
     ) -> Result<()> {
         instructions::stock_plan::adjust_stock_plan_shares(ctx, new_shares_reserved)
     }
+
+    pub fn issue_convertible(
+        ctx: Context<IssueConvertible>,
+        security_id: [u8; 16],
+        investment_amount: u64,
+    ) -> Result<()> {
+        instructions::convertible::issue_convertible(ctx, security_id, investment_amount)
+    }
 }

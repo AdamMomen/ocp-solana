@@ -41,3 +41,11 @@ pub struct StockPlan {
     pub stock_class_ids: Vec<[u8; 16]>,
     pub shares_reserved: u64,
 }
+
+#[account]
+#[derive(Default)]
+pub struct ConvertibleActivePosition {
+    pub stakeholder_id: [u8; 16],
+    pub security_id: [u8; 16],
+    pub investment_amount: u64,
+}
