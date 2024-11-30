@@ -40,10 +40,18 @@ pub fn issue_warrant(
     position.security_id = security_id;
     position.quantity = quantity;
 
-    emit!(WarrantIssued {
-        stakeholder_id: stakeholder.id,
-        security_id,
-        quantity,
+    // Serialize the data
+    let tx_data = AnchorSerialize::try_to_vec(
+        &(WarrantIssued {
+            stakeholder_id: stakeholder.id,
+            security_id,
+            quantity,
+        }),
+    )?;
+
+    emit!(TxCreated {
+        tx_type: TxType::WarrantIssuance,
+        tx_data,
     });
 
     Ok(())

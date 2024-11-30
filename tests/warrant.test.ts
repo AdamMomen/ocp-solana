@@ -2,6 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { OcpSolana } from "../target/types/ocp_solana";
 import { expect } from "chai";
+import { TxTypes, isTxType } from "./helpers";
 
 describe("Warrant Tests", () => {
   const provider = anchor.AnchorProvider.env();
@@ -55,7 +56,19 @@ describe("Warrant Tests", () => {
       .rpc();
   });
 
-  it("Issues warrant to stakeholder", async () => {
+  it("Issues warrant and emits TxCreated event", async () => {
+    const eventPromise = new Promise((resolve, reject) => {
+      const listener = program.addEventListener("txCreated", (event) => {
+        program.removeEventListener(listener);
+        resolve(event);
+      });
+
+      setTimeout(() => {
+        program.removeEventListener(listener);
+        reject(new Error("Timeout waiting for event"));
+      }, 30000);
+    });
+
     const [positionPda] = await anchor.web3.PublicKey.findProgramAddress(
       [
         Buffer.from("warrant_position"),
@@ -65,6 +78,7 @@ describe("Warrant Tests", () => {
       program.programId
     );
 
+    // Issue the warrant
     await program.methods
       .issueWarrant(Array.from(securityId), quantity)
       .accounts({
@@ -77,16 +91,25 @@ describe("Warrant Tests", () => {
       })
       .rpc();
 
-    // Verify position
-    const position = await program.account.warrantActivePosition.fetch(
-      positionPda
+    // The event data is automatically deserialized by Anchor
+    const event = (await eventPromise) as any;
+
+    // Verify event type
+    expect(isTxType(event, "WarrantIssuance")).to.be.true;
+
+    // Decode the buffer using Anchor's program coder
+    const decodedData = program.coder.types.decode(
+      "warrantIssued", // The tuple type from our Rust code
+      event.txData
     );
+
+    // Verify the decoded data
     expect(
-      Buffer.from(position.stakeholderId).equals(Buffer.from(stakeholderId))
+      Buffer.from(decodedData.stakeholderId).equals(Buffer.from(stakeholderId))
     ).to.be.true;
-    expect(Buffer.from(position.securityId).equals(Buffer.from(securityId))).to
-      .be.true;
-    expect(position.quantity.eq(quantity)).to.be.true;
+    expect(Buffer.from(decodedData.securityId).equals(Buffer.from(securityId)))
+      .to.be.true;
+    expect(decodedData.quantity.eq(quantity)).to.be.true;
   });
 
   it("Fails when attempting to issue warrant with zero quantity", async () => {

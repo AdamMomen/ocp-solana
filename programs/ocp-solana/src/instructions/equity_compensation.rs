@@ -58,12 +58,20 @@ pub fn issue_equity_compensation(
     position.security_id = security_id;
     position.quantity = quantity;
 
-    emit!(EquityCompensationIssued {
-        stakeholder_id: stakeholder.id,
-        stock_class_id,
-        stock_plan_id,
-        quantity,
-        security_id,
+    // Serialize using the EquityCompensationIssued event struct
+    let tx_data = AnchorSerialize::try_to_vec(
+        &(EquityCompensationIssued {
+            stakeholder_id: stakeholder.id,
+            stock_class_id,
+            stock_plan_id,
+            quantity,
+            security_id,
+        }),
+    )?;
+
+    emit!(TxCreated {
+        tx_type: TxType::EquityCompensationIssuance,
+        tx_data,
     });
 
     Ok(())
@@ -99,10 +107,18 @@ pub fn exercise_equity_compensation(
         .checked_sub(quantity)
         .ok_or(EquityCompensationError::InsufficientShares)?;
 
-    emit!(EquityCompensationExercised {
-        equity_comp_security_id,
-        resulting_stock_security_id,
-        quantity,
+    // Serialize using the EquityCompensationExercised event struct
+    let tx_data = AnchorSerialize::try_to_vec(
+        &(EquityCompensationExercised {
+            equity_comp_security_id,
+            resulting_stock_security_id,
+            quantity,
+        }),
+    )?;
+
+    emit!(TxCreated {
+        tx_type: TxType::EquityCompensationExercise,
+        tx_data,
     });
 
     Ok(())

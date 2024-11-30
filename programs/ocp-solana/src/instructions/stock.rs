@@ -38,10 +38,9 @@ pub fn issue_stock(
     require!(quantity > 0, StockError::InvalidQuantity);
     require!(share_price > 0, StockError::InvalidSharePrice);
 
-    let stock_class = &mut ctx.accounts.stock_class;
-    let issuer = &mut ctx.accounts.issuer;
     let position = &mut ctx.accounts.position;
     let stakeholder = &ctx.accounts.stakeholder;
+    let stock_class = &mut ctx.accounts.stock_class;
 
     require!(
         stock_class.shares_issued + quantity <= stock_class.shares_authorized,
@@ -55,14 +54,21 @@ pub fn issue_stock(
     position.share_price = share_price;
 
     stock_class.shares_issued += quantity;
-    issuer.shares_issued += quantity;
 
-    emit!(StockIssued {
-        stock_class_id,
-        security_id,
-        stakeholder_id: stakeholder.id,
-        quantity,
-        share_price,
+    // Serialize using the StockIssued event struct
+    let tx_data = AnchorSerialize::try_to_vec(
+        &(StockIssued {
+            stock_class_id,
+            security_id,
+            stakeholder_id: stakeholder.id,
+            quantity,
+            share_price,
+        }),
+    )?;
+
+    emit!(TxCreated {
+        tx_type: TxType::StockIssuance,
+        tx_data,
     });
 
     Ok(())

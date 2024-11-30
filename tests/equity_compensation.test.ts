@@ -2,6 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { OcpSolana } from "../target/types/ocp_solana";
 import { expect } from "chai";
+import { isTxType } from "./helpers";
 
 describe("Equity Compensation Tests", () => {
   const provider = anchor.AnchorProvider.env();
@@ -301,5 +302,182 @@ describe("Equity Compensation Tests", () => {
       expect(error).to.be.instanceOf(Error);
       expect(error.toString()).to.include("QuantityMismatch");
     }
+  });
+
+  it("Issues equity compensation and emits TxCreated event", async () => {
+    const securityId = new Uint8Array(16).fill(35);
+    const [positionPda] = await anchor.web3.PublicKey.findProgramAddress(
+      [
+        Buffer.from("equity_compensation_position"),
+        Buffer.from(stakeholderId),
+        Buffer.from(securityId),
+      ],
+      program.programId
+    );
+
+    const eventPromise = new Promise((resolve, reject) => {
+      const listener = program.addEventListener("txCreated", (event) => {
+        program.removeEventListener(listener);
+        resolve(event);
+      });
+
+      setTimeout(() => {
+        program.removeEventListener(listener);
+        reject(new Error("Timeout waiting for event"));
+      }, 30000);
+    });
+
+    await program.methods
+      .issueEquityCompensation(
+        Array.from(securityId),
+        Array.from(stockClassId),
+        Array.from(stockPlanId),
+        quantity
+      )
+      .accounts({
+        issuer: issuerPda,
+        stakeholder: stakeholderPda,
+        stockClass: stockClassPda,
+        stockPlan: stockPlanPda,
+        // @ts-ignore
+        position: positionPda,
+        authority: authority.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc();
+
+    const event = (await eventPromise) as any;
+    expect(isTxType(event, "EquityCompensationIssuance")).to.be.true;
+
+    const decodedData = program.coder.types.decode(
+      "equityCompensationIssued",
+      event.txData
+    );
+
+    expect(
+      Buffer.from(decodedData.stakeholderId).equals(Buffer.from(stakeholderId))
+    ).to.be.true;
+    expect(
+      Buffer.from(decodedData.stockClassId).equals(Buffer.from(stockClassId))
+    ).to.be.true;
+    expect(
+      Buffer.from(decodedData.stockPlanId).equals(Buffer.from(stockPlanId))
+    ).to.be.true;
+    expect(Buffer.from(decodedData.securityId).equals(Buffer.from(securityId)))
+      .to.be.true;
+    expect(decodedData.quantity.eq(quantity)).to.be.true;
+  });
+
+  it("Exercises equity compensation and emits TxCreated event", async () => {
+    const securityId = new Uint8Array(16).fill(45);
+    const resultingStockSecurityId = new Uint8Array(16).fill(46);
+
+    // First create equity compensation position
+    const [equityPositionPda] = await anchor.web3.PublicKey.findProgramAddress(
+      [
+        Buffer.from("equity_compensation_position"),
+        Buffer.from(stakeholderId),
+        Buffer.from(securityId),
+      ],
+      program.programId
+    );
+
+    // Issue equity compensation first
+    await program.methods
+      .issueEquityCompensation(
+        Array.from(securityId),
+        Array.from(stockClassId),
+        Array.from(stockPlanId),
+        quantity
+      )
+      .accounts({
+        issuer: issuerPda,
+        stakeholder: stakeholderPda,
+        stockClass: stockClassPda,
+        stockPlan: stockPlanPda,
+        // @ts-ignore
+        position: equityPositionPda,
+        authority: authority.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc();
+
+    // Create stock position that will result from exercise
+    const [stockPositionPda] = await anchor.web3.PublicKey.findProgramAddress(
+      [
+        Buffer.from("stock_position"),
+        Buffer.from(stakeholderId),
+        Buffer.from(resultingStockSecurityId),
+      ],
+      program.programId
+    );
+
+    // Issue stock with matching quantity
+    await program.methods
+      .issueStock(
+        Array.from(stockClassId),
+        Array.from(resultingStockSecurityId),
+        quantity,
+        sharePrice
+      )
+      .accounts({
+        issuer: issuerPda,
+        stockClass: stockClassPda,
+        stakeholder: stakeholderPda,
+        // @ts-ignore
+        position: stockPositionPda,
+        authority: authority.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc();
+
+    // Now set up event listener for exercise
+    const eventPromise = new Promise((resolve, reject) => {
+      const listener = program.addEventListener("txCreated", (event) => {
+        program.removeEventListener(listener);
+        resolve(event);
+      });
+
+      setTimeout(() => {
+        program.removeEventListener(listener);
+        reject(new Error("Timeout waiting for event"));
+      }, 30000);
+    });
+
+    // Exercise the equity compensation
+    await program.methods
+      .exerciseEquityCompensation(
+        Array.from(securityId),
+        Array.from(resultingStockSecurityId),
+        quantity
+      )
+      .accounts({
+        issuer: issuerPda,
+        equityPosition: equityPositionPda,
+        // @ts-ignore
+        stockPosition: stockPositionPda,
+        authority: authority.publicKey,
+      })
+      .rpc();
+
+    const event = (await eventPromise) as any;
+    expect(isTxType(event, "EquityCompensationExercise")).to.be.true;
+
+    const decodedData = program.coder.types.decode(
+      "equityCompensationExercised",
+      event.txData
+    );
+
+    expect(
+      Buffer.from(decodedData.equityCompSecurityId).equals(
+        Buffer.from(securityId)
+      )
+    ).to.be.true;
+    expect(
+      Buffer.from(decodedData.resultingStockSecurityId).equals(
+        Buffer.from(resultingStockSecurityId)
+      )
+    ).to.be.true;
+    expect(decodedData.quantity.eq(quantity)).to.be.true;
   });
 });

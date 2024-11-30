@@ -39,10 +39,18 @@ pub fn issue_convertible(
     position.security_id = security_id;
     position.investment_amount = investment_amount;
 
-    emit!(ConvertibleIssued {
-        stakeholder_id: stakeholder.id,
-        security_id,
-        investment_amount,
+    // Serialize using the ConvertibleIssued event struct
+    let tx_data = AnchorSerialize::try_to_vec(
+        &(ConvertibleIssued {
+            stakeholder_id: stakeholder.id,
+            security_id,
+            investment_amount,
+        }),
+    )?;
+
+    emit!(TxCreated {
+        tx_type: TxType::ConvertibleIssuance,
+        tx_data,
     });
 
     Ok(())

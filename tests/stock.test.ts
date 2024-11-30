@@ -2,6 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { OcpSolana } from "../target/types/ocp_solana";
 import { expect } from "chai";
+import { isTxType } from "./helpers";
 
 describe("Stock Tests", () => {
   const provider = anchor.AnchorProvider.env();
@@ -290,5 +291,63 @@ describe("Stock Tests", () => {
       expect(error).to.be.instanceOf(Error);
       expect(error.toString()).to.include("InvalidSharePrice");
     }
+  });
+
+  it("Issues stock and emits TxCreated event", async () => {
+    const securityId = new Uint8Array(16).fill(15);
+    const [positionPda] = await anchor.web3.PublicKey.findProgramAddress(
+      [
+        Buffer.from("stock_position"),
+        Buffer.from(stakeholderId),
+        Buffer.from(securityId),
+      ],
+      program.programId
+    );
+    const eventPromise = new Promise((resolve, reject) => {
+      const listener = program.addEventListener("txCreated", (event) => {
+        program.removeEventListener(listener);
+        resolve(event);
+      });
+
+      setTimeout(() => {
+        program.removeEventListener(listener);
+        reject(new Error("Timeout waiting for event"));
+      }, 30000);
+    });
+
+    // Issue stock...
+    await program.methods
+      .issueStock(
+        Array.from(stockClassId),
+        Array.from(securityId),
+        issuanceQuantity,
+        sharePrice
+      )
+      .accounts({
+        stockClass: stockClassPda,
+        issuer: issuerPda,
+        stakeholder: stakeholderPda,
+        // @ts-ignore
+        position: positionPda,
+        authority: authority.publicKey,
+      })
+      .rpc();
+
+    const event = (await eventPromise) as any;
+
+    expect(isTxType(event, "StockIssuance")).to.be.true;
+
+    const decodedData = program.coder.types.decode("stockIssued", event.txData);
+
+    expect(
+      Buffer.from(decodedData.stockClassId).equals(Buffer.from(stockClassId))
+    ).to.be.true;
+    expect(Buffer.from(decodedData.securityId).equals(Buffer.from(securityId)))
+      .to.be.true;
+    expect(
+      Buffer.from(decodedData.stakeholderId).equals(Buffer.from(stakeholderId))
+    ).to.be.true;
+    expect(decodedData.quantity.eq(issuanceQuantity)).to.be.true;
+    expect(decodedData.sharePrice.eq(sharePrice)).to.be.true;
   });
 });

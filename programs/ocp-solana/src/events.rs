@@ -1,5 +1,30 @@
 use anchor_lang::prelude::*;
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq)]
+pub enum TxType {
+    Invalid,
+    IssuerAuthorizedSharesAdjustment,
+    StockClassAuthorizedSharesAdjustment,
+    StockAcceptance,
+    StockCancellation,
+    StockIssuance,
+    StockReissuance,
+    StockRepurchase,
+    StockRetraction,
+    StockTransfer,
+    ConvertibleIssuance,
+    EquityCompensationIssuance,
+    StockPlanPoolAdjustment,
+    WarrantIssuance,
+    EquityCompensationExercise,
+}
+
+#[event]
+pub struct TxCreated {
+    pub tx_type: TxType,
+    pub tx_data: Vec<u8>, // Anchor automatically handles serialization
+}
+
 #[event]
 pub struct StockClassCreated {
     pub id: [u8; 16],
