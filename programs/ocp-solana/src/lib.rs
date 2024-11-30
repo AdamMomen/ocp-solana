@@ -88,4 +88,34 @@ pub mod ocp_solana {
     ) -> Result<()> {
         instructions::convertible::issue_convertible(ctx, security_id, investment_amount)
     }
+
+    pub fn issue_equity_compensation(
+        ctx: Context<IssueEquityCompensation>,
+        security_id: [u8; 16],
+        stock_class_id: [u8; 16],
+        stock_plan_id: [u8; 16],
+        quantity: u64,
+    ) -> Result<()> {
+        instructions::equity_compensation::issue_equity_compensation(
+            ctx,
+            security_id,
+            stock_class_id,
+            stock_plan_id,
+            quantity,
+        )
+    }
+
+    pub fn exercise_equity_compensation(
+        ctx: Context<ExerciseEquityCompensation>,
+        equity_comp_security_id: [u8; 16],
+        resulting_stock_security_id: [u8; 16],
+        quantity: u64,
+    ) -> Result<()> {
+        instructions::equity_compensation::exercise_equity_compensation(
+            ctx,
+            equity_comp_security_id,
+            resulting_stock_security_id,
+            quantity,
+        )
+    }
 }

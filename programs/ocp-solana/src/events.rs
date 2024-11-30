@@ -46,3 +46,19 @@ pub struct ConvertibleIssued {
     pub security_id: [u8; 16],
     pub investment_amount: u64,
 }
+
+#[event]
+pub struct EquityCompensationIssued {
+    pub stakeholder_id: [u8; 16],
+    pub stock_class_id: [u8; 16],
+    pub stock_plan_id: [u8; 16],
+    pub quantity: u64,
+    pub security_id: [u8; 16],
+}
+
+#[event]
+pub struct EquityCompensationExercised {
+    pub equity_comp_security_id: [u8; 16],
+    pub resulting_stock_security_id: [u8; 16],
+    pub quantity: u64,
+}

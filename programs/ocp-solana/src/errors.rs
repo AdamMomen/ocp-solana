@@ -31,3 +31,15 @@ pub enum ConvertibleError {
     #[msg("Investment amount must be greater than zero")]
     InvalidAmount,
 }
+
+#[error_code]
+pub enum EquityCompensationError {
+    #[msg("Quantity must be greater than zero")]
+    InvalidQuantity,
+    #[msg("Insufficient shares available")]
+    InsufficientShares,
+    #[msg("Stock position quantity must match exercise quantity")]
+    QuantityMismatch,
+    #[msg("Stock position must belong to same stakeholder")]
+    InvalidStakeholder,
+}

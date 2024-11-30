@@ -49,3 +49,13 @@ pub struct ConvertibleActivePosition {
     pub security_id: [u8; 16],
     pub investment_amount: u64,
 }
+
+#[account]
+#[derive(Default)]
+pub struct EquityCompensationActivePosition {
+    pub stakeholder_id: [u8; 16],
+    pub stock_class_id: [u8; 16],
+    pub stock_plan_id: [u8; 16],
+    pub security_id: [u8; 16],
+    pub quantity: u64,
+}
