@@ -77,6 +77,64 @@ pub mod ocp_solana {
         
         Ok(())
     }
+
+    pub fn create_stakeholder(
+        ctx: Context<CreateStakeholder>,
+        id: [u8; 16],  // equivalent to bytes16
+    ) -> Result<()> {
+        let stakeholder = &mut ctx.accounts.stakeholder;
+        
+        // Set the stakeholder ID
+        stakeholder.id = id;
+        
+        // Emit an event
+        emit!(StakeholderCreated {
+            id: stakeholder.id,
+        });
+
+        msg!("Stakeholder created with id: {:?}", id);
+        Ok(())
+    }
+
+    pub fn issue_stock(
+        ctx: Context<IssueStock>,
+        stock_class_id: [u8; 16],
+        security_id: [u8; 16],
+        quantity: u64,
+        share_price: u64,
+    ) -> Result<()> {
+        let stock_class = &mut ctx.accounts.stock_class;
+        let issuer = &mut ctx.accounts.issuer;
+        let position = &mut ctx.accounts.position;
+        let stakeholder = &ctx.accounts.stakeholder;
+
+        // Validate shares available
+        require!(
+            stock_class.shares_issued + quantity <= stock_class.shares_authorized,
+            StockError::InsufficientShares
+        );
+
+        // Initialize the position
+        position.stakeholder_id = stakeholder.id;
+        position.stock_class_id = stock_class_id;
+        position.security_id = security_id;
+        position.quantity = quantity;
+        position.share_price = share_price;
+
+        // Update share counts
+        stock_class.shares_issued += quantity;
+        issuer.shares_issued += quantity;
+
+        emit!(StockIssued {
+            stock_class_id,
+            security_id,
+            stakeholder_id: stakeholder.id,
+            quantity,
+            share_price,
+        });
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -127,6 +185,50 @@ pub struct AdjustStockClassShares<'info> {
     pub authority: Signer<'info>,
 }
 
+#[derive(Accounts)]
+pub struct CreateStakeholder<'info> {
+    #[account(
+        init,
+        payer = authority,
+        space = 8 +    // discriminator
+                16     // id
+    )]
+    pub stakeholder: Account<'info, Stakeholder>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(stock_class_id: [u8; 16], security_id: [u8; 16], quantity: u64, share_price: u64)]
+pub struct IssueStock<'info> {
+    #[account(mut)]
+    pub stock_class: Account<'info, StockClass>,
+    #[account(mut)]
+    pub issuer: Account<'info, Issuer>,
+    pub stakeholder: Account<'info, Stakeholder>,
+    #[account(
+        init,
+        payer = authority,
+        space = 8 + // discriminator
+                16 + // stakeholder_id
+                16 + // stock_class_id
+                16 + // security_id
+                8 + // quantity
+                8,  // share_price
+        seeds = [
+            b"stock_position",
+            stakeholder.id.as_ref(),
+            security_id.as_ref()
+        ],
+        bump
+    )]
+    pub position: Account<'info, StockPosition>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
 #[account]
 #[derive(Default)]
 pub struct Issuer {
@@ -145,6 +247,22 @@ pub struct StockClass {
     pub shares_authorized: u64,
 }
 
+#[account]
+#[derive(Default)]
+pub struct Stakeholder {
+    pub id: [u8; 16],          // bytes16 equivalent
+}
+
+#[account]
+#[derive(Default)]
+pub struct StockPosition {
+    pub stakeholder_id: [u8; 16],    // bytes16
+    pub stock_class_id: [u8; 16],    // bytes16
+    pub security_id: [u8; 16],       // bytes16
+    pub quantity: u64,
+    pub share_price: u64,
+}
+
 // Events
 #[event]
 pub struct StockClassCreated {
@@ -160,8 +278,28 @@ pub struct StockClassSharesAdjusted {
     pub new_shares_authorized: u64,
 }
 
+#[event]
+pub struct StakeholderCreated {
+    pub id: [u8; 16],
+}
+
+#[event]
+pub struct StockIssued {
+    pub stock_class_id: [u8; 16],
+    pub security_id: [u8; 16],
+    pub stakeholder_id: [u8; 16],
+    pub quantity: u64,
+    pub share_price: u64,
+}
+
 #[error_code]
 pub enum IssuerError {
     #[msg("Issuer has already been initialized")]
     AlreadyInitialized,
+}
+
+#[error_code]
+pub enum StockError {
+    #[msg("Insufficient shares available for issuance")]
+    InsufficientShares,
 }
