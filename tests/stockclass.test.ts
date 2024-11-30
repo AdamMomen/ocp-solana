@@ -4,14 +4,10 @@ import { OcpSolana } from "../target/types/ocp_solana";
 import { expect } from "chai";
 
 describe("Stock Class Tests", () => {
-  // Configure the client
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
   const program = anchor.workspace.OcpSolana as Program<OcpSolana>;
-
-  // Test accounts
-  const stockClassKeypair = anchor.web3.Keypair.generate();
   const authority = provider.wallet;
 
   // Test data
@@ -23,6 +19,12 @@ describe("Stock Class Tests", () => {
 
   it("Creates a stock class", async () => {
     try {
+      // Find PDA for stock class
+      const [stockClassPda] = await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from("stock_class"), Buffer.from(testId)],
+        program.programId
+      );
+
       await program.methods
         .createStockClass(
           Array.from(testId),
@@ -31,15 +33,15 @@ describe("Stock Class Tests", () => {
           initialShares
         )
         .accounts({
-          stockClass: stockClassKeypair.publicKey,
+          stockClass: stockClassPda,
           authority: authority.publicKey,
+          systemProgram: anchor.web3.SystemProgram.programId,
         })
-        .signers([stockClassKeypair])
         .rpc();
 
       // Fetch the created account
       const stockClassAccount = await program.account.stockClass.fetch(
-        stockClassKeypair.publicKey
+        stockClassPda
       );
 
       // Verify the account data
@@ -55,35 +57,15 @@ describe("Stock Class Tests", () => {
     }
   });
 
-  it("Adjusts authorized shares for stock class", async () => {
-    try {
-      await program.methods
-        .adjustStockClassShares(newSharesAuthorized)
-        .accounts({
-          stockClass: stockClassKeypair.publicKey,
-          authority: authority.publicKey,
-        })
-        .rpc();
-
-      // Fetch the updated account
-      const stockClassAccount = await program.account.stockClass.fetch(
-        stockClassKeypair.publicKey
-      );
-
-      // Verify the updated shares
-      expect(stockClassAccount.sharesAuthorized.eq(newSharesAuthorized)).to.be
-        .true;
-    } catch (error) {
-      console.error("Error:", error);
-      throw error;
-    }
-  });
-
   it("Creates a preferred stock class", async () => {
-    // Create a new keypair for preferred stock
-    const preferredStockKeypair = anchor.web3.Keypair.generate();
-    const preferredClassType = "PREFERRED";
     const preferredId = new Uint8Array(16).fill(2); // Different ID for preferred
+    const preferredClassType = "PREFERRED";
+
+    // Find PDA for preferred stock class
+    const [preferredStockPda] = await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from("stock_class"), Buffer.from(preferredId)],
+      program.programId
+    );
 
     try {
       await program.methods
@@ -94,15 +76,15 @@ describe("Stock Class Tests", () => {
           initialShares
         )
         .accounts({
-          stockClass: preferredStockKeypair.publicKey,
+          stockClass: preferredStockPda,
           authority: authority.publicKey,
+          systemProgram: anchor.web3.SystemProgram.programId,
         })
-        .signers([preferredStockKeypair])
         .rpc();
 
       // Fetch the created account
       const stockClassAccount = await program.account.stockClass.fetch(
-        preferredStockKeypair.publicKey
+        preferredStockPda
       );
 
       // Verify the account data
@@ -111,6 +93,36 @@ describe("Stock Class Tests", () => {
       expect(stockClassAccount.classType).to.equal(preferredClassType);
       expect(stockClassAccount.sharesIssued.eq(new anchor.BN(0))).to.be.true;
       expect(stockClassAccount.sharesAuthorized.eq(initialShares)).to.be.true;
+    } catch (error) {
+      console.error("Error:", error);
+      throw error;
+    }
+  });
+
+  it("Adjusts authorized shares for stock class", async () => {
+    try {
+      // Find PDA for stock class (using the same testId from creation)
+      const [stockClassPda] = await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from("stock_class"), Buffer.from(testId)],
+        program.programId
+      );
+
+      await program.methods
+        .adjustStockClassShares(newSharesAuthorized)
+        .accounts({
+          stockClass: stockClassPda,
+          authority: authority.publicKey,
+        })
+        .rpc();
+
+      // Fetch the updated account
+      const stockClassAccount = await program.account.stockClass.fetch(
+        stockClassPda
+      );
+
+      // Verify the updated shares
+      expect(stockClassAccount.sharesAuthorized.eq(newSharesAuthorized)).to.be
+        .true;
     } catch (error) {
       console.error("Error:", error);
       throw error;

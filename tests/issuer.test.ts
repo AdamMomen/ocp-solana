@@ -9,9 +9,6 @@ describe("Issuer Program Tests", () => {
   anchor.setProvider(provider);
 
   const program = anchor.workspace.OcpSolana as Program<OcpSolana>;
-
-  // Test accounts
-  const issuerKeypair = anchor.web3.Keypair.generate();
   const authority = provider.wallet;
 
   // Test data
@@ -21,20 +18,22 @@ describe("Issuer Program Tests", () => {
 
   it("Initializes an issuer", async () => {
     try {
+      // Find PDA for issuer
+      const [issuerPda] = await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from("issuer"), Buffer.from(testId)],
+        program.programId
+      );
+
       await program.methods
         .initializeIssuer(Array.from(testId), initialShares)
         .accounts({
-          issuer: issuerKeypair.publicKey,
+          issuer: issuerPda,
           authority: authority.publicKey,
-          systemProgram: anchor.web3.SystemProgram.programId,
         })
-        .signers([issuerKeypair])
         .rpc();
 
       // Fetch the created account
-      const issuerAccount = await program.account.issuer.fetch(
-        issuerKeypair.publicKey
-      );
+      const issuerAccount = await program.account.issuer.fetch(issuerPda);
 
       // Verify the account data
       expect(Buffer.from(issuerAccount.id).equals(Buffer.from(testId))).to.be
@@ -49,18 +48,22 @@ describe("Issuer Program Tests", () => {
 
   it("Adjusts authorized shares", async () => {
     try {
+      // Find PDA for issuer
+      const [issuerPda] = await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from("issuer"), Buffer.from(testId)],
+        program.programId
+      );
+
       await program.methods
         .adjustAuthorizedShares(newSharesAuthorized)
         .accounts({
-          issuer: issuerKeypair.publicKey,
+          issuer: issuerPda,
           authority: authority.publicKey,
         })
         .rpc();
 
       // Fetch the updated account
-      const issuerAccount = await program.account.issuer.fetch(
-        issuerKeypair.publicKey
-      );
+      const issuerAccount = await program.account.issuer.fetch(issuerPda);
 
       // Verify the updated shares
       expect(issuerAccount.sharesAuthorized.eq(newSharesAuthorized)).to.be.true;
@@ -72,14 +75,19 @@ describe("Issuer Program Tests", () => {
 
   it("Fails to initialize already initialized issuer", async () => {
     try {
+      // Find PDA for issuer
+      const [issuerPda] = await anchor.web3.PublicKey.findProgramAddress(
+        [Buffer.from("issuer"), Buffer.from(testId)],
+        program.programId
+      );
+
       // Attempt to initialize the same issuer again
       await program.methods
         .initializeIssuer(Array.from(testId), initialShares)
         .accounts({
-          issuer: issuerKeypair.publicKey,
+          issuer: issuerPda,
           authority: authority.publicKey,
         })
-        .signers([issuerKeypair])
         .rpc();
 
       // If we reach here, the test should fail

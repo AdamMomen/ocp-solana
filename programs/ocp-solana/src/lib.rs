@@ -138,14 +138,17 @@ pub mod ocp_solana {
 }
 
 #[derive(Accounts)]
+#[instruction(id: [u8; 16])]
 pub struct InitializeIssuer<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + // discriminator
-                16 + // id
-                8 + // shares_issued
-                8   // shares_authorized
+        space = 8 + 16 + 8 + 8,
+        seeds = [
+            b"issuer",
+            id.as_ref(),
+        ],
+        bump
     )]
     pub issuer: Account<'info, Issuer>,
     #[account(mut)]
@@ -161,16 +164,17 @@ pub struct AdjustAuthorizedShares<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(id: [u8; 16])]
 pub struct CreateStockClass<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + // discriminator
-                16 + // id
-                40 + // class_type string (max length 40)
-                8 + // price_per_share
-                8 + // shares_issued
-                8   // shares_authorized
+        space = 8 + 16 + 40 + 8 + 8 + 8,
+        seeds = [
+            b"stock_class",
+            id.as_ref(),
+        ],
+        bump
     )]
     pub stock_class: Account<'info, StockClass>,
     #[account(mut)]
@@ -186,12 +190,17 @@ pub struct AdjustStockClassShares<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(id: [u8; 16])]
 pub struct CreateStakeholder<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 +    // discriminator
-                16     // id
+        space = 8 + 16,
+        seeds = [
+            b"stakeholder",
+            id.as_ref(),
+        ],
+        bump
     )]
     pub stakeholder: Account<'info, Stakeholder>,
     #[account(mut)]
@@ -206,16 +215,14 @@ pub struct IssueStock<'info> {
     pub stock_class: Account<'info, StockClass>,
     #[account(mut)]
     pub issuer: Account<'info, Issuer>,
+    #[account(
+        constraint = stock_class.id == stock_class_id @ StockError::InvalidStockClass
+    )]
     pub stakeholder: Account<'info, Stakeholder>,
     #[account(
         init,
         payer = authority,
-        space = 8 + // discriminator
-                16 + // stakeholder_id
-                16 + // stock_class_id
-                16 + // security_id
-                8 + // quantity
-                8,  // share_price
+        space = 8 + 16 + 16 + 16 + 8 + 8,
         seeds = [
             b"stock_position",
             stakeholder.id.as_ref(),
@@ -302,4 +309,8 @@ pub enum IssuerError {
 pub enum StockError {
     #[msg("Insufficient shares available for issuance")]
     InsufficientShares,
+    #[msg("Invalid stakeholder")]
+    InvalidStakeholder,
+    #[msg("Invalid stock class")]
+    InvalidStockClass,
 }
