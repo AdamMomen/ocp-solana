@@ -27,6 +27,7 @@ describe("Convertible Tests", () => {
     await program.methods
       .createStakeholder(Array.from(stakeholderId))
       .accounts({
+        // @ts-ignore
         stakeholder: stakeholderPda,
         authority: authority.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
@@ -48,6 +49,7 @@ describe("Convertible Tests", () => {
       .issueConvertible(Array.from(securityId), investmentAmount)
       .accounts({
         stakeholder: stakeholderPda,
+        // @ts-ignore
         position: positionPda,
         authority: authority.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
@@ -82,6 +84,7 @@ describe("Convertible Tests", () => {
         .issueConvertible(Array.from(newSecurityId), new anchor.BN(0))
         .accounts({
           stakeholder: stakeholderPda,
+          // @ts-ignore
           position: positionPda,
           authority: authority.publicKey,
           systemProgram: anchor.web3.SystemProgram.programId,
@@ -119,6 +122,7 @@ describe("Convertible Tests", () => {
         .issueConvertible(Array.from(newSecurityId), investmentAmount)
         .accounts({
           stakeholder: invalidStakeholderPda,
+          // @ts-ignore
           position: positionPda,
           authority: authority.publicKey,
           systemProgram: anchor.web3.SystemProgram.programId,
