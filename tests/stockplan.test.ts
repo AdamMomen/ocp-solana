@@ -41,6 +41,7 @@ describe("Stock Plan Tests", () => {
         sharesReserved
       )
       .accounts({
+        // @ts-ignore
         stockClass: stockClassPda1,
         authority: authority.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
@@ -56,6 +57,7 @@ describe("Stock Plan Tests", () => {
         sharesReserved
       )
       .accounts({
+        // @ts-ignore
         stockClass: stockClassPda2,
         authority: authority.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
@@ -76,6 +78,7 @@ describe("Stock Plan Tests", () => {
         sharesReserved
       )
       .accounts({
+        // @ts-ignore
         stockPlan: stockPlanPda,
         stockClass: stockClassPda1,
         authority: authority.publicKey,
@@ -140,6 +143,7 @@ describe("Stock Plan Tests", () => {
         )
         .accounts({
           stockClass: invalidStockClassPda,
+          // @ts-ignore
           stockPlan: stockPlanPda,
           authority: authority.publicKey,
           systemProgram: anchor.web3.SystemProgram.programId,
