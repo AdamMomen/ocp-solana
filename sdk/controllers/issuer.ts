@@ -10,7 +10,7 @@ export interface CreateIssuerParams {
 export async function createIssuer({
   id,
   sharesAuthorized,
-}: CreateIssuerParams): Promise<{ issuerPda: web3.PublicKey }> {
+}: CreateIssuerParams): Promise<web3.PublicKey> {
   try {
     const { program } = getProgram();
     const provider = getProvider();
@@ -37,7 +37,7 @@ export async function createIssuer({
       .rpc();
 
     await provider.connection.confirmTransaction(tx);
-    return { issuerPda };
+    return issuerPda;
   } catch (error) {
     if (error instanceof SendTransactionError) {
       console.log("Transaction Error Details:");
