@@ -189,11 +189,7 @@ describe("Equity Compensation Tests", () => {
 
     // Exercise the equity compensation
     await program.methods
-      .exerciseEquityCompensation(
-        Array.from(equityCompSecurityId),
-        Array.from(resultingStockSecurityId),
-        quantity
-      )
+      .exerciseEquityCompensation(quantity)
       .accounts({
         issuer: issuerPda,
         equityPosition: equityPositionPda,
@@ -267,11 +263,7 @@ describe("Equity Compensation Tests", () => {
 
     try {
       await program.methods
-        .exerciseEquityCompensation(
-          Array.from(newEquitySecurityId),
-          Array.from(newStockSecurityId),
-          quantity
-        )
+        .exerciseEquityCompensation(quantity)
         .accounts({
           issuer: issuerPda,
           equityPosition: equityPositionPda,
@@ -416,11 +408,7 @@ describe("Equity Compensation Tests", () => {
 
     // Exercise the equity compensation
     await program.methods
-      .exerciseEquityCompensation(
-        Array.from(securityId),
-        Array.from(resultingStockSecurityId),
-        quantity
-      )
+      .exerciseEquityCompensation(quantity)
       .accounts({
         issuer: issuerPda,
         equityPosition: equityPositionPda,

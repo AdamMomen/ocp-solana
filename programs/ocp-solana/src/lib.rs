@@ -98,16 +98,9 @@ pub mod ocp_solana {
 
     pub fn exercise_equity_compensation(
         ctx: Context<ExerciseEquityCompensation>,
-        equity_comp_security_id: [u8; 16],
-        resulting_stock_security_id: [u8; 16],
         quantity: u64,
     ) -> Result<()> {
-        instructions::equity_compensation::exercise_equity_compensation(
-            ctx,
-            equity_comp_security_id,
-            resulting_stock_security_id,
-            quantity,
-        )
+        instructions::equity_compensation::exercise_equity_compensation(ctx, quantity)
     }
 
     pub fn issue_warrant(

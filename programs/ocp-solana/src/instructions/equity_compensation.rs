@@ -32,7 +32,7 @@ pub struct IssueEquityCompensation<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(equity_comp_security_id: [u8; 16], resulting_stock_security_id: [u8; 16], quantity: u64)]
+#[instruction(quantity: u64)]
 pub struct ExerciseEquityCompensation<'info> {
     pub issuer: Account<'info, Issuer>,
     #[account(mut)]
@@ -56,9 +56,12 @@ pub fn issue_equity_compensation(
 
     position.stakeholder_id = stakeholder.id;
     position.stock_class_id = stock_class.id;
+
+    // Optional stock plan
     if let Some(stock_plan) = &ctx.accounts.stock_plan {
         position.stock_plan_id = stock_plan.id;
     }
+
     position.security_id = security_id;
     position.quantity = quantity;
 
@@ -87,8 +90,6 @@ pub fn issue_equity_compensation(
 
 pub fn exercise_equity_compensation(
     ctx: Context<ExerciseEquityCompensation>,
-    equity_comp_security_id: [u8; 16],
-    resulting_stock_security_id: [u8; 16],
     quantity: u64,
 ) -> Result<()> {
     let equity_position = &mut ctx.accounts.equity_position;
@@ -118,8 +119,8 @@ pub fn exercise_equity_compensation(
     // Serialize using the EquityCompensationExercised event struct
     let tx_data = AnchorSerialize::try_to_vec(
         &(EquityCompensationExercised {
-            equity_comp_security_id,
-            resulting_stock_security_id,
+            equity_comp_security_id: equity_position.security_id,
+            resulting_stock_security_id: stock_position.security_id,
             quantity,
         }),
     )?;
