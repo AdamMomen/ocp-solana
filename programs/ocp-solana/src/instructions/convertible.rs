@@ -12,6 +12,7 @@ pub struct IssueConvertible<'info> {
         init,
         payer = authority,
         space = 8 + 16 + 16 + 8, // discriminator + stakeholder_id + security_id + investment_amount
+        // Convertible active position seeding
         seeds = [
             b"convertible_position",
             stakeholder.id.as_ref(),
