@@ -7,7 +7,8 @@
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "test:local": "anchor test --provider.cluster localnet",
     "deploy:local": "anchor deploy --provider.cluster localnet",
-    "create-issuer": "ts-node scripts/create-issuer.ts"
+    "create-issuer": "ts-node scripts/create-issuer.ts",
+    "migrate": "anchor migrate"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
