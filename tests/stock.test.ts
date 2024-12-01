@@ -101,12 +101,7 @@ describe("Stock Tests", () => {
     );
 
     await program.methods
-      .issueStock(
-        Array.from(stockClassId),
-        Array.from(securityId),
-        issuanceQuantity,
-        sharePrice
-      )
+      .issueStock(Array.from(securityId), issuanceQuantity, sharePrice)
       .accounts({
         stockClass: stockClassPda,
         issuer: issuerPda,
@@ -147,12 +142,7 @@ describe("Stock Tests", () => {
 
     try {
       await program.methods
-        .issueStock(
-          Array.from(nonExistentStockClassId),
-          Array.from(securityId),
-          issuanceQuantity,
-          sharePrice
-        )
+        .issueStock(Array.from(securityId), issuanceQuantity, sharePrice)
         .accounts({
           stockClass: nonExistentStockClassPda,
           issuer: issuerPda,
@@ -191,12 +181,7 @@ describe("Stock Tests", () => {
 
     try {
       await program.methods
-        .issueStock(
-          Array.from(stockClassId),
-          Array.from(securityId),
-          issuanceQuantity,
-          sharePrice
-        )
+        .issueStock(Array.from(securityId), issuanceQuantity, sharePrice)
         .accounts({
           stockClass: stockClassPda,
           issuer: issuerPda,
@@ -231,7 +216,6 @@ describe("Stock Tests", () => {
     try {
       await program.methods
         .issueStock(
-          Array.from(stockClassId),
           Array.from(testSecurityId), // Using different security ID
           new anchor.BN(0), // Zero quantity
           sharePrice
@@ -269,7 +253,6 @@ describe("Stock Tests", () => {
     try {
       await program.methods
         .issueStock(
-          Array.from(stockClassId),
           Array.from(testSecurityId),
           issuanceQuantity,
           new anchor.BN(0) // Zero share price
@@ -317,12 +300,7 @@ describe("Stock Tests", () => {
 
     // Issue stock...
     await program.methods
-      .issueStock(
-        Array.from(stockClassId),
-        Array.from(securityId),
-        issuanceQuantity,
-        sharePrice
-      )
+      .issueStock(Array.from(securityId), issuanceQuantity, sharePrice)
       .accounts({
         stockClass: stockClassPda,
         issuer: issuerPda,

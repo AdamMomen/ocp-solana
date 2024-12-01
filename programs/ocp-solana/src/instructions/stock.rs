@@ -4,7 +4,7 @@ use crate::state::*;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-#[instruction(stock_class_id: [u8; 16], security_id: [u8; 16], quantity: u64, share_price: u64)]
+#[instruction(security_id: [u8; 16], quantity: u64, share_price: u64)]
 pub struct IssueStock<'info> {
     #[account(mut)]
     pub stock_class: Account<'info, StockClass>,
@@ -30,7 +30,6 @@ pub struct IssueStock<'info> {
 
 pub fn issue_stock(
     ctx: Context<IssueStock>,
-    stock_class_id: [u8; 16],
     security_id: [u8; 16],
     quantity: u64,
     share_price: u64,
@@ -48,7 +47,7 @@ pub fn issue_stock(
     );
 
     position.stakeholder_id = stakeholder.id;
-    position.stock_class_id = stock_class_id;
+    position.stock_class_id = stock_class.id;
     position.security_id = security_id;
     position.quantity = quantity;
     position.share_price = share_price;
@@ -58,7 +57,7 @@ pub fn issue_stock(
     // Serialize using the StockIssued event struct
     let tx_data = AnchorSerialize::try_to_vec(
         &(StockIssued {
-            stock_class_id,
+            stock_class_id: stock_class.id,
             security_id,
             stakeholder_id: stakeholder.id,
             quantity,
