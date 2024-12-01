@@ -1,24 +1,21 @@
-import { Program, web3, AnchorProvider } from "@coral-xyz/anchor";
-import { OcpSolana } from "../../target/types/ocp_solana";
-import { uuidToBytes16, stringNumberToBN } from "../helpers";
+import { getProvider, web3 } from "@coral-xyz/anchor";
+import { uuidToBytes16, stringNumberToBN, getProgram } from "../helpers";
+import { SendTransactionError } from "@solana/web3.js";
 
 export interface CreateIssuerParams {
   id: string; // UUID
   sharesAuthorized: string; // String number like "1000000"
-  connection: web3.Connection;
-  program: Program<OcpSolana>;
-  wallet: AnchorProvider;
 }
 
 export async function createIssuer({
   id,
   sharesAuthorized,
-  connection,
-  program,
-  wallet,
 }: CreateIssuerParams): Promise<{ issuerPda: web3.PublicKey }> {
   try {
-    // Convert inputs
+    const { program } = getProgram();
+    const provider = getProvider();
+
+    console.log("Wallet pubkey:", provider.publicKey.toString());
     const idBytes = uuidToBytes16(id);
     const sharesAuthorizedBN = stringNumberToBN(sharesAuthorized);
 
@@ -27,27 +24,34 @@ export async function createIssuer({
       [Buffer.from("issuer"), Buffer.from(idBytes)],
       program.programId
     );
-    // Send transaction
+
+    // Anchor expects account names to match the struct fields
     const tx = await program.methods
       .initializeIssuer(idBytes, sharesAuthorizedBN)
-      .accounts({ authority: wallet.publicKey })
+      .accounts({
+        // @ts-ignore
+        issuer: issuerPda,
+        authority: program.provider.publicKey,
+        systemProgram: web3.SystemProgram.programId,
+      })
       .rpc();
 
-    // Wait for confirmation
-    await connection.confirmTransaction(tx);
-
+    await provider.connection.confirmTransaction(tx);
     return { issuerPda };
   } catch (error) {
-    console.error("Error creating issuer:", error);
+    if (error instanceof SendTransactionError) {
+      console.log("Transaction Error Details:");
+      console.log("Message:", error.message);
+      console.log("Logs:", error.logs);
+      console.log("Error:", error.toString());
+    }
     throw error;
   }
 }
 
-export async function getIssuer(
-  program: Program<OcpSolana>,
-  issuerPda: web3.PublicKey
-) {
+export async function getIssuer(issuerPda: web3.PublicKey) {
   try {
+    const { program } = getProgram();
     const issuer = await program.account.issuer.fetch(issuerPda);
     return issuer;
   } catch (error) {
