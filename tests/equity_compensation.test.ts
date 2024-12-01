@@ -110,19 +110,15 @@ describe("Equity Compensation Tests", () => {
     const [positionPda] = await anchor.web3.PublicKey.findProgramAddress(
       [
         Buffer.from("equity_compensation_position"),
-        Buffer.from(stakeholderId),
         Buffer.from(equityCompSecurityId),
+        Buffer.from(stockClassId),
+        Buffer.from(stakeholderId),
       ],
       program.programId
     );
 
     await program.methods
-      .issueEquityCompensation(
-        Array.from(equityCompSecurityId),
-        Array.from(stockClassId),
-        Array.from(stockPlanId),
-        quantity
-      )
+      .issueEquityCompensation(Array.from(equityCompSecurityId), quantity)
       .accounts({
         issuer: issuerPda,
         stakeholder: stakeholderPda,
@@ -161,12 +157,7 @@ describe("Equity Compensation Tests", () => {
 
     // Create the stock position with matching quantity
     await program.methods
-      .issueStock(
-        Array.from(stockClassId),
-        Array.from(resultingStockSecurityId),
-        quantity,
-        sharePrice
-      )
+      .issueStock(Array.from(resultingStockSecurityId), quantity, sharePrice)
       .accounts({
         issuer: issuerPda,
         stockClass: stockClassPda,
@@ -182,8 +173,9 @@ describe("Equity Compensation Tests", () => {
     const [equityPositionPda] = await anchor.web3.PublicKey.findProgramAddress(
       [
         Buffer.from("equity_compensation_position"),
-        Buffer.from(stakeholderId),
         Buffer.from(equityCompSecurityId),
+        Buffer.from(stockClassId),
+        Buffer.from(stakeholderId),
       ],
       program.programId
     );
@@ -229,19 +221,15 @@ describe("Equity Compensation Tests", () => {
     const [equityPositionPda] = await anchor.web3.PublicKey.findProgramAddress(
       [
         Buffer.from("equity_compensation_position"),
-        Buffer.from(stakeholderId),
         Buffer.from(newEquitySecurityId),
+        Buffer.from(stockClassId),
+        Buffer.from(stakeholderId),
       ],
       program.programId
     );
 
     await program.methods
-      .issueEquityCompensation(
-        Array.from(newEquitySecurityId),
-        Array.from(stockClassId),
-        Array.from(stockPlanId),
-        quantity
-      )
+      .issueEquityCompensation(Array.from(newEquitySecurityId), quantity)
       .accounts({
         issuer: issuerPda,
         stakeholder: stakeholderPda,
@@ -265,12 +253,7 @@ describe("Equity Compensation Tests", () => {
     );
 
     await program.methods
-      .issueStock(
-        Array.from(stockClassId),
-        Array.from(newStockSecurityId),
-        differentQuantity,
-        sharePrice
-      )
+      .issueStock(Array.from(newStockSecurityId), differentQuantity, sharePrice)
       .accounts({
         issuer: issuerPda,
         stockClass: stockClassPda,
@@ -309,8 +292,9 @@ describe("Equity Compensation Tests", () => {
     const [positionPda] = await anchor.web3.PublicKey.findProgramAddress(
       [
         Buffer.from("equity_compensation_position"),
-        Buffer.from(stakeholderId),
         Buffer.from(securityId),
+        Buffer.from(stockClassId),
+        Buffer.from(stakeholderId),
       ],
       program.programId
     );
@@ -328,12 +312,7 @@ describe("Equity Compensation Tests", () => {
     });
 
     await program.methods
-      .issueEquityCompensation(
-        Array.from(securityId),
-        Array.from(stockClassId),
-        Array.from(stockPlanId),
-        quantity
-      )
+      .issueEquityCompensation(Array.from(securityId), quantity)
       .accounts({
         issuer: issuerPda,
         stakeholder: stakeholderPda,
@@ -376,20 +355,16 @@ describe("Equity Compensation Tests", () => {
     const [equityPositionPda] = await anchor.web3.PublicKey.findProgramAddress(
       [
         Buffer.from("equity_compensation_position"),
-        Buffer.from(stakeholderId),
         Buffer.from(securityId),
+        Buffer.from(stockClassId),
+        Buffer.from(stakeholderId),
       ],
       program.programId
     );
 
     // Issue equity compensation first
     await program.methods
-      .issueEquityCompensation(
-        Array.from(securityId),
-        Array.from(stockClassId),
-        Array.from(stockPlanId),
-        quantity
-      )
+      .issueEquityCompensation(Array.from(securityId), quantity)
       .accounts({
         issuer: issuerPda,
         stakeholder: stakeholderPda,
@@ -414,12 +389,7 @@ describe("Equity Compensation Tests", () => {
 
     // Issue stock with matching quantity
     await program.methods
-      .issueStock(
-        Array.from(stockClassId),
-        Array.from(resultingStockSecurityId),
-        quantity,
-        sharePrice
-      )
+      .issueStock(Array.from(resultingStockSecurityId), quantity, sharePrice)
       .accounts({
         issuer: issuerPda,
         stockClass: stockClassPda,
@@ -479,5 +449,48 @@ describe("Equity Compensation Tests", () => {
       )
     ).to.be.true;
     expect(decodedData.quantity.eq(quantity)).to.be.true;
+  });
+
+  it("Issues equity compensation without stock plan", async () => {
+    const securityId = new Uint8Array(16).fill(50);
+    const [positionPda] = await anchor.web3.PublicKey.findProgramAddress(
+      [
+        Buffer.from("equity_compensation_position"),
+        Buffer.from(securityId),
+        Buffer.from(stockClassId),
+        Buffer.from(stakeholderId),
+      ],
+      program.programId
+    );
+
+    await program.methods
+      .issueEquityCompensation(Array.from(securityId), quantity)
+      .accounts({
+        issuer: issuerPda,
+        stakeholder: stakeholderPda,
+        stockClass: stockClassPda,
+        stockPlan: null,
+        // @ts-ignore
+        position: positionPda,
+        authority: authority.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc();
+
+    // Verify position
+    const position =
+      await program.account.equityCompensationActivePosition.fetch(positionPda);
+    expect(
+      Buffer.from(position.stakeholderId).equals(Buffer.from(stakeholderId))
+    ).to.be.true;
+    expect(Buffer.from(position.stockClassId).equals(Buffer.from(stockClassId)))
+      .to.be.true;
+    // Verify stock_plan_id is zero when not provided
+    expect(
+      Buffer.from(position.stockPlanId).equals(Buffer.from(new Uint8Array(16)))
+    ).to.be.true;
+    expect(Buffer.from(position.securityId).equals(Buffer.from(securityId))).to
+      .be.true;
+    expect(position.quantity.eq(quantity)).to.be.true;
   });
 });

@@ -4,21 +4,24 @@ use crate::state::*;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-#[instruction(security_id: [u8; 16], stock_class_id: [u8; 16], stock_plan_id: [u8; 16], quantity: u64)]
+#[instruction(security_id: [u8; 16], quantity: u64)]
 pub struct IssueEquityCompensation<'info> {
     #[account(mut)]
     pub issuer: Account<'info, Issuer>,
     pub stakeholder: Account<'info, Stakeholder>,
     pub stock_class: Account<'info, StockClass>,
-    pub stock_plan: Account<'info, StockPlan>,
+    #[account()]
+    pub stock_plan: Option<Account<'info, StockPlan>>,
     #[account(
         init,
         payer = authority,
+        // Important Space allocation: discriminator(8) + security_id(16) + stock_class_id(16) + stakeholder_id(16) + stock_plan_id(16) + quantity(8)
         space = 8 + 16 + 16 + 16 + 16 + 8,
         seeds = [
             b"equity_compensation_position",
-            stakeholder.id.as_ref(),
-            security_id.as_ref()
+            security_id.as_ref(),
+            stock_class.id.as_ref(),
+            stakeholder.id.as_ref()
         ],
         bump
     )]
@@ -43,29 +46,34 @@ pub struct ExerciseEquityCompensation<'info> {
 pub fn issue_equity_compensation(
     ctx: Context<IssueEquityCompensation>,
     security_id: [u8; 16],
-    stock_class_id: [u8; 16],
-    stock_plan_id: [u8; 16],
     quantity: u64,
 ) -> Result<()> {
     require!(quantity > 0, EquityCompensationError::InvalidQuantity);
 
     let position = &mut ctx.accounts.position;
     let stakeholder = &ctx.accounts.stakeholder;
+    let stock_class = &ctx.accounts.stock_class;
 
     position.stakeholder_id = stakeholder.id;
-    position.stock_class_id = stock_class_id;
-    position.stock_plan_id = stock_plan_id;
+    position.stock_class_id = stock_class.id;
+    if let Some(stock_plan) = &ctx.accounts.stock_plan {
+        position.stock_plan_id = stock_plan.id;
+    }
     position.security_id = security_id;
     position.quantity = quantity;
 
     // Serialize using the EquityCompensationIssued event struct
     let tx_data = AnchorSerialize::try_to_vec(
         &(EquityCompensationIssued {
-            stakeholder_id: stakeholder.id,
-            stock_class_id,
-            stock_plan_id,
-            quantity,
             security_id,
+            stakeholder_id: stakeholder.id,
+            stock_class_id: stock_class.id,
+            stock_plan_id: if let Some(plan) = &ctx.accounts.stock_plan {
+                plan.id
+            } else {
+                [0; 16]
+            },
+            quantity,
         }),
     )?;
 

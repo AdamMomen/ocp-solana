@@ -57,12 +57,11 @@ pub mod ocp_solana {
 
     pub fn issue_stock(
         ctx: Context<IssueStock>,
-        stock_class_id: [u8; 16],
         security_id: [u8; 16],
         quantity: u64,
         share_price: u64,
     ) -> Result<()> {
-        instructions::stock::issue_stock(ctx, stock_class_id, security_id, quantity, share_price)
+        instructions::stock::issue_stock(ctx, security_id, quantity, share_price)
     }
 
     pub fn create_stock_plan(
@@ -92,17 +91,9 @@ pub mod ocp_solana {
     pub fn issue_equity_compensation(
         ctx: Context<IssueEquityCompensation>,
         security_id: [u8; 16],
-        stock_class_id: [u8; 16],
-        stock_plan_id: [u8; 16],
         quantity: u64,
     ) -> Result<()> {
-        instructions::equity_compensation::issue_equity_compensation(
-            ctx,
-            security_id,
-            stock_class_id,
-            stock_plan_id,
-            quantity,
-        )
+        instructions::equity_compensation::issue_equity_compensation(ctx, security_id, quantity)
     }
 
     pub fn exercise_equity_compensation(
