@@ -30,11 +30,7 @@ export async function createIssuer({
     // Send transaction
     const tx = await program.methods
       .initializeIssuer(idBytes, sharesAuthorizedBN)
-      .accounts({
-        // issuer: issuerPda,
-        authority: wallet.publicKey,
-        // systemProgram: web3.SystemProgram.programId,
-      })
+      .accounts({ authority: wallet.publicKey })
       .rpc();
 
     // Wait for confirmation
