@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::*;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 #[instruction(id: [u8; 16])]
@@ -34,7 +34,7 @@ pub fn initialize_issuer(
     initial_shares_authorized: u64,
 ) -> Result<()> {
     let issuer = &mut ctx.accounts.issuer;
-    
+
     require!(
         issuer.shares_authorized == 0,
         IssuerError::AlreadyInitialized
@@ -54,7 +54,7 @@ pub fn adjust_authorized_shares(
 ) -> Result<()> {
     let issuer = &mut ctx.accounts.issuer;
     issuer.shares_authorized = new_shares_authorized;
-    
+
     msg!("Adjusted authorized shares to: {}", new_shares_authorized);
     Ok(())
-} 
+}
