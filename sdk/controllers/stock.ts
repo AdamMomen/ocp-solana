@@ -48,14 +48,9 @@ export async function issueStock({
     const tx = await program.methods
       .issueStock(securityIdBytes, quantityBN, sharePriceBN)
       .accounts({
-        // @ts-ignore
         stockClass: stockClassPda,
-        // @ts-ignore
         stakeholder: stakeholderPda,
-        // @ts-ignore
-        position: positionPda,
         authority: program.provider.publicKey,
-        systemProgram: web3.SystemProgram.programId,
       })
       .rpc();
 
