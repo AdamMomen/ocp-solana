@@ -67,7 +67,19 @@ export async function issueWarrant({
 export async function getWarrantPosition(positionPda: web3.PublicKey) {
   try {
     const { program } = getProgram();
-    return await program.account.warrantActivePosition.fetch(positionPda);
+    const position = await program.account.warrantActivePosition.fetch(
+      positionPda
+    );
+
+    // Convert raw data to readable format
+    const decodedPosition = {
+      stakeholderId: Buffer.from(position.stakeholderId).toString("hex"),
+      securityId: Buffer.from(position.securityId).toString("hex"),
+      quantity: position.quantity.toString(),
+    };
+
+    console.log("Warrant position decoded data:", decodedPosition);
+    return decodedPosition;
   } catch (error) {
     console.error("Error fetching warrant position:", error);
     throw error;

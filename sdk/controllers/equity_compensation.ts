@@ -168,9 +168,20 @@ export async function getEquityCompensationPosition(
 ) {
   try {
     const { program } = getProgram();
-    return await program.account.equityCompensationActivePosition.fetch(
-      positionPda
-    );
+    const position =
+      await program.account.equityCompensationActivePosition.fetch(positionPda);
+
+    // Convert raw data to readable format
+    const decodedPosition = {
+      stakeholderId: Buffer.from(position.stakeholderId).toString("hex"),
+      stockClassId: Buffer.from(position.stockClassId).toString("hex"),
+      stockPlanId: Buffer.from(position.stockPlanId).toString("hex"),
+      securityId: Buffer.from(position.securityId).toString("hex"),
+      quantity: position.quantity.toString(),
+    };
+
+    console.log("Equity compensation position decoded data:", decodedPosition);
+    return decodedPosition;
   } catch (error) {
     console.error("Error fetching equity compensation position:", error);
     throw error;

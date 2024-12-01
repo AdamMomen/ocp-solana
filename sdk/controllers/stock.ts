@@ -79,7 +79,21 @@ export async function issueStock({
 export async function getStockPosition(positionPda: web3.PublicKey) {
   try {
     const { program } = getProgram();
-    return await program.account.stockActivePosition.fetch(positionPda);
+    const position = await program.account.stockActivePosition.fetch(
+      positionPda
+    );
+
+    // Convert raw data to readable format
+    const decodedPosition = {
+      stakeholderId: Buffer.from(position.stakeholderId).toString("hex"),
+      stockClassId: Buffer.from(position.stockClassId).toString("hex"),
+      securityId: Buffer.from(position.securityId).toString("hex"),
+      quantity: position.quantity.toString(),
+      sharePrice: position.sharePrice.toString(),
+    };
+
+    console.log("Stock position decoded data:", decodedPosition);
+    return decodedPosition;
   } catch (error) {
     console.error("Error fetching stock position:", error);
     throw error;

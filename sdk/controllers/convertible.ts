@@ -76,7 +76,19 @@ export async function issueConvertible({
 export async function getConvertiblePosition(positionPda: web3.PublicKey) {
   try {
     const { program } = getProgram();
-    return await program.account.convertibleActivePosition.fetch(positionPda);
+    const position = await program.account.convertibleActivePosition.fetch(
+      positionPda
+    );
+
+    // Convert raw data to readable format
+    const decodedPosition = {
+      stakeholderId: Buffer.from(position.stakeholderId).toString("hex"),
+      securityId: Buffer.from(position.securityId).toString("hex"),
+      investmentAmount: position.investmentAmount.toString(), // Convert BN to string
+    };
+
+    console.log("Convertible position decoded data:", decodedPosition);
+    return decodedPosition;
   } catch (error) {
     console.error("Error fetching convertible position:", error);
     throw error;
