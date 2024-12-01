@@ -3,12 +3,14 @@ import { uuidToBytes16, stringNumberToBN, getProgram } from "../helpers";
 import { SendTransactionError } from "@solana/web3.js";
 
 export async function issueStock({
+  issuerId,
   securityId,
   stockClassId,
   stakeholderId,
   quantity,
   sharePrice,
 }: {
+  issuerId: string;
   securityId: string;
   stockClassId: string;
   stakeholderId: string;
@@ -19,6 +21,7 @@ export async function issueStock({
     const { program } = getProgram();
     const provider = getProvider();
 
+    const issuerIdBytes = uuidToBytes16(issuerId);
     const securityIdBytes = uuidToBytes16(securityId);
     const stockClassIdBytes = uuidToBytes16(stockClassId);
     const stakeholderIdBytes = uuidToBytes16(stakeholderId);
@@ -26,6 +29,11 @@ export async function issueStock({
     const sharePriceBN = stringNumberToBN(sharePrice);
 
     // Find PDAs
+    const [issuerPda] = await web3.PublicKey.findProgramAddress(
+      [Buffer.from("issuer"), Buffer.from(issuerIdBytes)],
+      program.programId
+    );
+
     const [stockClassPda] = await web3.PublicKey.findProgramAddress(
       [Buffer.from("stock_class"), Buffer.from(stockClassIdBytes)],
       program.programId
@@ -48,6 +56,7 @@ export async function issueStock({
     const tx = await program.methods
       .issueStock(securityIdBytes, quantityBN, sharePriceBN)
       .accounts({
+        issuer: issuerPda,
         stockClass: stockClassPda,
         stakeholder: stakeholderPda,
         authority: program.provider.publicKey,
