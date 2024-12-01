@@ -2,6 +2,7 @@
 // single deploy script that's invoked from the CLI, injecting a provider
 // configured from the workspace's Anchor.toml.
 
+import { v4 as uuid } from "uuid";
 import { createIssuer, getIssuer } from "../sdk/controllers/issuer";
 import { createStakeholder } from "../sdk/controllers/stakeholder";
 import { createStockClass } from "../sdk/controllers/stockclass";
@@ -89,14 +90,10 @@ module.exports = async function (/* provider */) {
     // console.log("Warrant position data:", warrantPosition);
     const convertiblePositionPda = await issueConvertible({
       issuerId,
-      securityId: convertibleSecurityId,
+      securityId: uuid(),
       stakeholderId,
       investmentAmount: "1000000", // 1 USDC
     });
-    console.log(
-      "Convertible position Address:",
-      convertiblePositionPda.toString()
-    );
   } catch (error) {
     console.error("Deployment error:", error);
     throw error;
