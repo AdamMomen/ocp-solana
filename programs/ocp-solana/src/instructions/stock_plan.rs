@@ -54,6 +54,7 @@ pub fn create_stock_plan(
     emit!(StockPlanCreated {
         id,
         shares_reserved,
+        issuer_id: ctx.accounts.issuer.id,
     });
 
     Ok(())

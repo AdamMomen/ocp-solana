@@ -83,6 +83,7 @@ pub fn issue_equity_compensation(
     emit!(TxCreated {
         tx_type: TxType::EquityCompensationIssuance,
         tx_data,
+        issuer_id: ctx.accounts.issuer.id,
     });
 
     Ok(())
@@ -128,6 +129,7 @@ pub fn exercise_equity_compensation(
     emit!(TxCreated {
         tx_type: TxType::EquityCompensationExercise,
         tx_data,
+        issuer_id: ctx.accounts.issuer.id
     });
 
     Ok(())

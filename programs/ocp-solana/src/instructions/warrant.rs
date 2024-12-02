@@ -52,6 +52,7 @@ pub fn issue_warrant(
     emit!(TxCreated {
         tx_type: TxType::WarrantIssuance,
         tx_data,
+        issuer_id: ctx.accounts.issuer.id,
     });
 
     Ok(())

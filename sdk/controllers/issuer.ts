@@ -1,5 +1,10 @@
-import { getProvider, web3 } from "@coral-xyz/anchor";
-import { uuidToBytes16, stringNumberToBN, getProgram } from "../helpers";
+import { AnchorProvider, web3 } from "@coral-xyz/anchor";
+import {
+  uuidToBytes16,
+  stringNumberToBN,
+  getProgram,
+  getProvider,
+} from "../helpers";
 import { SendTransactionError } from "@solana/web3.js";
 
 export interface CreateIssuerParams {
@@ -10,7 +15,8 @@ export interface CreateIssuerParams {
 export async function createIssuer({
   id,
   sharesAuthorized,
-}: CreateIssuerParams): Promise<web3.PublicKey> {
+}: CreateIssuerParams): Promise<{ publicKey: string; slot: number }> {
+  console.log("Creating issuer in Solana...");
   try {
     const { program } = getProgram();
     const provider = getProvider();
@@ -36,8 +42,9 @@ export async function createIssuer({
       })
       .rpc();
 
-    await provider.connection.confirmTransaction(tx);
-    return issuerPda;
+    const confirmedTx = await provider.connection.confirmTransaction(tx);
+    const slot = confirmedTx.context.slot;
+    return { publicKey: issuerPda.toString(), slot };
   } catch (error) {
     if (error instanceof SendTransactionError) {
       console.log("Transaction Error Details:");
@@ -49,10 +56,12 @@ export async function createIssuer({
   }
 }
 
-export async function getIssuer(issuerPda: web3.PublicKey) {
+export async function getIssuer(issuerPda: string) {
   try {
     const { program } = getProgram();
-    const issuer = await program.account.issuer.fetch(issuerPda);
+    const issuer = await program.account.issuer.fetch(
+      new web3.PublicKey(issuerPda)
+    );
     return issuer;
   } catch (error) {
     console.error("Error fetching issuer:", error);

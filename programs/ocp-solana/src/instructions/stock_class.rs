@@ -50,6 +50,7 @@ pub fn create_stock_class(
         class_type: stock_class.class_type.clone(),
         price_per_share,
         initial_shares_authorized,
+        issuer_id: ctx.accounts.issuer.id,
     });
 
     Ok(())
@@ -65,6 +66,7 @@ pub fn adjust_stock_class_shares(
     emit!(StockClassSharesAdjusted {
         stock_class_id: stock_class.id,
         new_shares_authorized,
+        issuer_id: ctx.accounts.issuer.id,
     });
 
     Ok(())

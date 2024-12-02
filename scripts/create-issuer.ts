@@ -12,7 +12,7 @@ async function main() {
 
     console.log("Issuer created at:", issuerPda.toString());
 
-    const issuer = await getIssuer(issuerPda);
+    const issuer = await getIssuer(issuerPda.publicKey);
     console.log("Issuer data:", issuer);
   } catch (error) {
     console.error("Error:", error);

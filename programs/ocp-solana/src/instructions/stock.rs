@@ -62,12 +62,14 @@ pub fn issue_stock(
             stakeholder_id: stakeholder.id,
             quantity,
             share_price,
+            issuer_id: ctx.accounts.issuer.id,
         }),
     )?;
 
     emit!(TxCreated {
         tx_type: TxType::StockIssuance,
         tx_data,
+        issuer_id: ctx.accounts.issuer.id,
     });
 
     Ok(())

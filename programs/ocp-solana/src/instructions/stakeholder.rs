@@ -29,7 +29,10 @@ pub fn create_stakeholder(ctx: Context<CreateStakeholder>, id: [u8; 16]) -> Resu
     stakeholder.id = id;
 
     // Emit an event
-    emit!(StakeholderCreated { id: stakeholder.id });
+    emit!(StakeholderCreated {
+        id: stakeholder.id,
+        issuer_id: ctx.accounts.issuer.id
+    });
 
     msg!("Stakeholder created with id: {:?}", id);
     Ok(())

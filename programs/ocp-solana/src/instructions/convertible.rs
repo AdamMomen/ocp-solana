@@ -52,6 +52,7 @@ pub fn issue_convertible(
     emit!(TxCreated {
         tx_type: TxType::ConvertibleIssuance,
         tx_data,
+        issuer_id: ctx.accounts.issuer.id,
     });
 
     Ok(())
