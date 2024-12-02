@@ -54,11 +54,3 @@ yarn install
 ```bash
 yarn test
 ```
-
-## Credits
-
-This project builds upon the Open Cap Table Protocol created by [Victor Mimo](https://github.com/victormimo). The original implementation and protocol specification can be found at [open-captable-protocol](https://github.com/victormimo/open-captable-protocol).
-
-## License
-
-MIT License - see LICENSE file for details
